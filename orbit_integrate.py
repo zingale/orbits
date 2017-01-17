@@ -9,7 +9,11 @@ class Orbit(object):
 
         # we'll work internally in units of M = solar masses, L = AU, and t = years
         self.GM = 4*np.pi**2
-    
+
+        self.AU = 1.5e11  # m
+        self.yr = 3.16e7  # s
+        self.solar_mass = 2.e30 # kg
+
         # initial conditions -- we'll start at perihelion
         self.x0 = a*(1.0 - e)
         self.y0 = 0.0
@@ -28,7 +32,7 @@ class Orbit(object):
         # return the orbital period in years
         return np.sqrt(4*np.pi**2*self.a**3/self.GM)
         
-    def integrate(self, num_years=1.0):
+    def integrate(self, num_periods=1.0):
         # integrate using the scipy RK integrator with dense output
         r = integrate.ode(self.rhs)
         r.set_integrator("dopri5", atol=1.e-6, rtol=1.e-6)
@@ -42,7 +46,8 @@ class Orbit(object):
         r.set_f_params(self.GM)
         
         # integrate
-        r.integrate(num_years)
+        tend = num_periods * self.period()
+        r.integrate(tend)
         
         q = np.array(sol)
         self.t = q[:,0]
@@ -90,14 +95,29 @@ class Orbit(object):
         plt.plot(self.t, self.vy, label="vy [AU/yr]")
         
         plt.xlabel("t [yr]")
-        plt.legend(frameon=False)
+        plt.legend(frameon=False, fontsize="small", loc="best")
         
         f = plt.gcf()
         f.set_size_inches(6.0, 9.0)
         
-    def data(self):
-        for n in range(len(self.t)):
-            print("{:12.6g}: {:12.6g}, {:12.6g}, {:12.6g}, {:12.6g}".format(
+    def data(self, use_mks=False):
+
+        if use_mks:
+            # header
+            print("{:>13}: {:>13}, {:>13}, {:>13}, {:>13}".format(
+                "time (s)", "x (m)", "y (m)", "vx (m/s)", "vy (m/s)"))
+
+            for n in range(len(self.t)):
+                print("{:13.7g}: {:13.7g}, {:13.7g}, {:13.7g}, {:13.7g}".format(
+                    self.t[n]*self.yr, self.x[n]*self.AU, self.y[n]*self.AU, self.vx[n]*self.AU/self.yr, self.vy[n]*self.AU/self.yr))
+        else:
+            # header
+            print("{:>13}: {:>13}, {:>13}, {:>13}, {:>13}".format(
+                "time (yr)", "x (AU)", "y (AU)", "vx (AU/yr)", "vy (AU/yr)"))
+
+            for n in range(len(self.t)):
+                print("{:13.7g}: {:13.7g}, {:13.7g}, {:13.7g}, {:13.7g}".format(
                     self.t[n], self.x[n], self.y[n], self.vx[n], self.vy[n]))
+
         
         
