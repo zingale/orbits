@@ -8,6 +8,7 @@ class Orbit(object):
         self.e = e
 
         # we'll work internally in units of M = solar masses, L = AU, and t = years
+        # but convert to MKS for output
         self.GM = 4*np.pi**2
 
         self.AU = 1.5e11  # m
@@ -31,20 +32,20 @@ class Orbit(object):
         self.npts = None
 
         # foci
-        self.foci1_x = 0.0
-        self.foci1_y = 0.0
+        self.focus1_x = 0.0
+        self.focus1_y = 0.0
 
-        self.foci2_x = -self.a*self.e
-        self.foci2_y = 0.0
+        self.focus2_x = -self.a*self.e
+        self.focus2_y = 0.0
 
     def period(self):
         # return the orbital period in years
         return np.sqrt(4*np.pi**2*self.a**3/self.GM)
         
-    def integrate(self, num_periods=1.0):
+    def integrate(self, num_periods=1.0, tol=1.e-7):
         # integrate using the scipy RK integrator with dense output
         r = integrate.ode(self.rhs)
-        r.set_integrator("dopri5", atol=1.e-7, rtol=1.e-7)
+        r.set_integrator("dopri5", atol=tol, rtol=tol)
 
         # dense output
         sol = []
@@ -59,11 +60,11 @@ class Orbit(object):
         r.integrate(tend)
         
         q = np.array(sol)
-        self.t = q[:,0]
-        self.x = q[:,1]
-        self.y = q[:,2]
-        self.vx = q[:,3]
-        self.vy = q[:,4]
+        self.t = q[:,0] * self.yr
+        self.x = q[:,1] * self.AU
+        self.y = q[:,2] * self.AU
+        self.vx = q[:,3] * self.AU/self.yr
+        self.vy = q[:,4] * self.AU/self.yr
 
         self.npts = len(self.t)
         
@@ -88,10 +89,10 @@ class Orbit(object):
         return f
     
     def plot(self):
-        plt.subplot(211)
+        plt.subplot(311)
         plt.plot(self.x, self.y)
-        plt.xlabel("x [AU]")
-        plt.ylabel("y [AU]")
+        plt.xlabel("x [m]")
+        plt.ylabel("y [m]")
         
         # foci
         plt.scatter([0], [0], marker="x")
@@ -99,36 +100,31 @@ class Orbit(object):
         ax = plt.gca()
         ax.set_aspect("equal", "datalim")
         
-        plt.subplot(212)
-        plt.plot(self.t, self.x, label="x [AU]")
-        plt.plot(self.t, self.y, label="y [AU]")
-        plt.plot(self.t, self.vx, label="vx [AU/yr]")
-        plt.plot(self.t, self.vy, label="vy [AU/yr]")
+        plt.subplot(312)
+        plt.plot(self.t, self.x, label="x [m]")
+        plt.plot(self.t, self.y, label="y [m]")
+        
+        plt.xlabel("t [yr]")
+        plt.legend(frameon=False, fontsize="small", loc="best")
+
+        plt.subplot(313)
+        plt.plot(self.t, self.vx, label="vx [m/s]")
+        plt.plot(self.t, self.vy, label="vy [m/s]")
         
         plt.xlabel("t [yr]")
         plt.legend(frameon=False, fontsize="small", loc="best")
         
         f = plt.gcf()
-        f.set_size_inches(6.0, 9.0)
+        f.set_size_inches(6.0, 11.0)
         
-    def data(self, use_mks=False):
+    def data(self):
+        """ output the data in a nice table """
+        print("{:3} {:>13}: {:>13}, {:>13}, {:>13}, {:>13}".format(
+            "n", "time (s)", "x (m)", "y (m)", "vx (m/s)", "vy (m/s)"))
 
-        if use_mks:
-            # header
-            print("{:3} {:>13}: {:>13}, {:>13}, {:>13}, {:>13}".format(
-                "n", "time (s)", "x (m)", "y (m)", "vx (m/s)", "vy (m/s)"))
-
-            for n in range(len(self.t)):
-                print("{:3} {:13.7g}: {:13.7g}, {:13.7g}, {:13.7g}, {:13.7g}".format(
-                    n, self.t[n]*self.yr, self.x[n]*self.AU, self.y[n]*self.AU, self.vx[n]*self.AU/self.yr, self.vy[n]*self.AU/self.yr))
-        else:
-            # header
-            print("{:3} {:>13}: {:>13}, {:>13}, {:>13}, {:>13}".format(
-                "n", "time (yr)", "x (AU)", "y (AU)", "vx (AU/yr)", "vy (AU/yr)"))
-
-            for n in range(len(self.t)):
-                print("{:13.7g}: {:13.7g}, {:13.7g}, {:13.7g}, {:13.7g}".format(
-                    n, self.t[n], self.x[n], self.y[n], self.vx[n], self.vy[n]))
+        for n in range(len(self.t)):
+            print("{:3} {:13.7g}: {:13.7g}, {:13.7g}, {:13.7g}, {:13.7g}".format(
+                n, self.t[n], self.x[n], self.y[n], self.vx[n], self.vy[n]))
 
         
         
