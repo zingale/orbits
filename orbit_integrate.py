@@ -6,9 +6,11 @@ class Orbit(object):
     """ define an orbit around a star """
 
     def __init__(self, a=1.0, e=0.0):
-        """ initialize the orbit.  Specify the semi-major axis in AU and the eccentricity """
+        """initialize the orbit.  Specify the semi-major axis in AU and the
+        eccentricity"""
 
-        # we'll work internally in MKS units, to make live easier for the students
+        # we'll work internally in MKS units, to make live easier for
+        # the students
         G = 6.67408e-11  # N m**2 / kg**2
 
         self.AU = 1.5e11  # m
@@ -106,34 +108,51 @@ class Orbit(object):
 
         return f
 
-    def plot(self):
-        plt.subplot(311)
-        plt.plot(self.x, self.y)
-        plt.xlabel("x [m]")
-        plt.ylabel("y [m]")
+    def plot(self, show_profiles=False):
 
-        # foci
-        plt.scatter([0], [0], marker="x")
+        if show_profiles:
+            plt.subplot(311)
+            plt.plot(self.x/self.AU, self.y/self.AU)
+            plt.xlabel("x [AU]")
+            plt.ylabel("y [AU]")
 
-        ax = plt.gca()
-        ax.set_aspect("equal", "datalim")
+            # foci
+            plt.scatter([0], [0], marker="x")
 
-        plt.subplot(312)
-        plt.plot(self.t, self.x, label="x [m]")
-        plt.plot(self.t, self.y, label="y [m]")
+            ax = plt.gca()
+            ax.set_aspect("equal", "datalim")
 
-        plt.xlabel("t [yr]")
-        plt.legend(frameon=False, fontsize="small", loc="best")
+            plt.subplot(312)
+            plt.plot(self.t, self.x, label="x [m]")
+            plt.plot(self.t, self.y, label="y [m]")
 
-        plt.subplot(313)
-        plt.plot(self.t, self.vx, label="vx [m/s]")
-        plt.plot(self.t, self.vy, label="vy [m/s]")
+            plt.xlabel("t [yr]")
+            plt.legend(frameon=False, fontsize="small", loc="best")
 
-        plt.xlabel("t [yr]")
-        plt.legend(frameon=False, fontsize="small", loc="best")
+            plt.subplot(313)
+            plt.plot(self.t, self.vx, label="vx [m/s]")
+            plt.plot(self.t, self.vy, label="vy [m/s]")
 
-        f = plt.gcf()
-        f.set_size_inches(6.0, 11.0)
+            plt.xlabel("t [yr]")
+            plt.legend(frameon=False, fontsize="small", loc="best")
+
+            f = plt.gcf()
+            f.set_size_inches(6.0, 11.0)
+
+        else:
+            plt.plot(self.x/self.AU, self.y/self.AU)
+            plt.xlabel("x [AU]")
+            plt.ylabel("y [AU]")
+
+            # foci
+            plt.scatter([0], [0], marker="x")
+
+            ax = plt.gca()
+            ax.set_aspect("equal", "datalim")
+
+            f = plt.gcf()
+            f.set_size_inches(6.0, 6.0)
+
 
     def data(self):
         """ output the data in a nice table """
