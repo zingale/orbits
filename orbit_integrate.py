@@ -17,7 +17,7 @@ class Orbit(object):
         self.yr = 3.16e7  # s
         self.solar_mass = 2.e30 # kg
 
-        self.GM = G*self.solar_mass
+        self.GM = G*2.0*self.solar_mass
 
         self.a = a * self.AU
         self.e = e
